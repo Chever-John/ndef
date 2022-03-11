@@ -25,23 +25,6 @@ void testGenerate(List<String> hexStrings, List<List<NDEFRecord>> messages) {
 }
 
 void main() {
-  test('ndef message with uri type', () {
-    // TODO: fill in tests
-    List<String> hexStrings = [
-      "91011655046769746875622e636f6d2f6e6663696d2f6e64656651010b55046769746875622e636f6d",
-    ];
-
-    List<List<NDEFRecord>> messages = [
-      [
-        UriRecord.fromString("https://github.com/nfcim/ndef"),
-        UriRecord.fromString("https://github.com")
-      ],
-    ];
-
-    testParse(hexStrings, messages);
-    testGenerate(hexStrings, messages);
-  });
-
   test('ndef message with text type', () {
     List<String> hexStrings = [
       "d1010f5402656e48656c6c6f20576f726c6421",
