@@ -1,10 +1,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ndef/utilities.dart';
-
-void main() {
   group('decode and encode', () {
-    test('main function', () {
       assert(ByteUtils.bytesEqual(null, null) == true);
       assert(ByteUtils.bytesEqual(
           Uint8List.fromList([1, 2, 3]), Uint8List.fromList([1, 2])) ==
