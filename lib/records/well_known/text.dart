@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../ndef.dart';
-import 'wellknown.dart';
+import 'package:ndef/records/well_known/well_known.dart';
+import 'package:ndef/utilities.dart';
 
 enum TextEncoding { UTF8, UTF16 }
 
@@ -16,6 +16,7 @@ class TextRecord extends WellKnownRecord {
 
   static const int classMinPayloadLength = 1;
 
+  @override
   int get minPayloadLength {
     return classMinPayloadLength;
   }
@@ -33,15 +34,10 @@ class TextRecord extends WellKnownRecord {
   late TextEncoding encoding;
   String? _language, text;
 
-  TextRecord(
-      {TextEncoding encoding = TextEncoding.UTF8,
-      String? language,
-      String? text}) {
-    this.encoding = encoding;
+  TextRecord({this.encoding = TextEncoding.UTF8, String? language, this.text}) {
     if (language != null) {
       this.language = language;
     }
-    this.text = text;
   }
 
   String? get language {
@@ -49,10 +45,10 @@ class TextRecord extends WellKnownRecord {
   }
 
   set language(String? language) {
-    if (language!.length >= 64 || language.length <= 0) {
+    if (language != null && (language.length >= 64 || language.isEmpty)) {
       throw RangeError.range(language.length, 1, 64);
     }
-    this._language = language;
+    _language = language;
   }
 
   String get encodingString {
@@ -64,6 +60,7 @@ class TextRecord extends WellKnownRecord {
     }
   }
 
+  @override
   Uint8List get payload {
     List<int> languagePayload = utf8.encode(language!);
     late List<int> textPayload;
@@ -79,11 +76,12 @@ class TextRecord extends WellKnownRecord {
       encodingFlag = 1;
     }
     int flag = (encodingFlag << 7) | languagePayload.length;
-    return new Uint8List.fromList([flag] + languagePayload + textPayload);
+    return Uint8List.fromList([flag] + languagePayload + textPayload);
   }
 
+  @override
   set payload(Uint8List? payload) {
-    var stream = new ByteStream(payload!);
+    var stream = ByteStream(payload!);
 
     int flag = stream.readByte();
     int languagePayloadLength = flag & 0x3F;
@@ -113,7 +111,7 @@ class TextRecord extends WellKnownRecord {
       } else {
         throw ArgumentError("Unknown BOM in UTF-16 encoded string.");
       }
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       for (int i = 2; i < bytes.length;) {
         int firstWord = end == Endianness.Little
             ? (bytes[i + 1] << 8) + bytes[i]
@@ -131,7 +129,7 @@ class TextRecord extends WellKnownRecord {
           i += 2;
         }
       }
-      this.text = buffer.toString();
+      text = buffer.toString();
     }
   }
 }

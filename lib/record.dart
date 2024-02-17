@@ -2,17 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ndef/ndef.dart';
-
-import 'utilities.dart';
-import 'record/wellknown.dart';
-import 'record/uri.dart';
-import 'record/text.dart';
-import 'record/signature.dart';
-import 'record/deviceinfo.dart';
-import 'record/mime.dart';
-import 'record/bluetooth.dart';
-import 'record/absoluteUri.dart';
-import 'record/handover.dart';
+import 'package:ndef/utilities.dart';
 
 /// Represent the flags in the header of a NDEF record.
 class NDEFRecordFlags {
@@ -87,7 +77,7 @@ enum TypeNameFormat {
 }
 
 /// Construct an instance of a specific type (subclass) of [NDEFRecord] according to [tnf] and [classType]
-typedef NDEFRecord TypeFactory(TypeNameFormat tnf, String classType);
+typedef TypeFactory = NDEFRecord Function(TypeNameFormat tnf, String classType);
 
 /// The base class of all types of records.
 /// Also represents an record of unknown type.
@@ -190,11 +180,8 @@ class NDEFRecord {
   late NDEFRecordFlags flags;
 
   NDEFRecord(
-      {TypeNameFormat? tnf,
-      Uint8List? type,
-      Uint8List? id,
-      Uint8List? payload}) {
-    flags = new NDEFRecordFlags();
+      {TypeNameFormat? tnf, Uint8List? type, this.id, Uint8List? payload}) {
+    flags = NDEFRecordFlags();
     if (tnf == null) {
       flags.TNF = TypeNameFormat.values.indexOf(this.tnf);
     } else {
@@ -204,7 +191,6 @@ class NDEFRecord {
       this.tnf = tnf;
     }
     this.type = type;
-    this.id = id;
     // some subclasses' setters require payload != null
     if (payload != null) {
       this.payload = payload;
@@ -248,6 +234,12 @@ class NDEFRecord {
       }
     } else if (tnf == TypeNameFormat.absoluteURI) {
       record = AbsoluteUriRecord();
+    } else if (tnf == TypeNameFormat.nfcExternal) {
+      if (classType == AARRecord.classType) {
+        record = AARRecord();
+      } else {
+        record = ExternalRecord();
+      }
     } else {
       record = NDEFRecord(tnf: tnf);
     }
@@ -278,7 +270,7 @@ class NDEFRecord {
 
   /// Decode a NDEF [NDEFRecord] from part of [ByteStream].
   static NDEFRecord decodeStream(ByteStream stream, TypeFactory typeFactory) {
-    var flags = new NDEFRecordFlags(data: stream.readByte());
+    var flags = NDEFRecordFlags(data: stream.readByte());
 
     int typeLength = stream.readByte();
     int payloadLength;
@@ -334,7 +326,7 @@ class NDEFRecord {
     var encoded = <int>[];
 
     // check and canonicalize
-    if (this.id == null) {
+    if (id == null) {
       flags.IL = false;
     } else {
       flags.IL = true;
@@ -391,12 +383,11 @@ class NDEFRecord {
     // payload
     encoded += encodedPayload;
 
-    return new Uint8List.fromList(encoded);
+    return Uint8List.fromList(encoded);
   }
 
   bool isEqual(NDEFRecord other) {
-    return (other is NDEFRecord) &&
-        (tnf == other.tnf) &&
+    return tnf == other.tnf &&
         ByteUtils.bytesEqual(type!, other.type) &&
         ByteUtils.bytesEqual(id, other.id) &&
         ByteUtils.bytesEqual(payload, other.payload);

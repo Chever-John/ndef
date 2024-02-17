@@ -3,15 +3,14 @@ import 'dart:typed_data';
 
 import 'package:uuid/uuid.dart';
 
-import '../ndef.dart';
-import 'wellknown.dart';
+import 'package:ndef/records/well_known/well_known.dart';
+import 'package:ndef/utilities.dart';
 
 class DataElement {
   late int type;
   late Uint8List value;
   DataElement(this.type, this.value);
-  DataElement.fromString(int type, String valueString) {
-    this.type = type;
+  DataElement.fromString(this.type, String valueString) {
     value = utf8.encode(valueString) as Uint8List;
   }
 
@@ -34,6 +33,7 @@ class DeviceInformationRecord extends WellKnownRecord {
 
   static const int classMinPayloadLength = 2;
 
+  @override
   int get minPayloadLength {
     return classMinPayloadLength;
   }
@@ -55,20 +55,16 @@ class DeviceInformationRecord extends WellKnownRecord {
   late List<DataElement> undefinedData;
 
   DeviceInformationRecord(
-      {String? vendorName,
-      String? modelName,
-      String? uniqueName,
+      {this.vendorName,
+      this.modelName,
+      this.uniqueName,
       String? uuid,
-      String? versionString,
+      this.versionString,
       List<DataElement>? undefinedData}) {
-    this.vendorName = vendorName;
-    this.modelName = modelName;
-    this.uniqueName = uniqueName;
     if (uuid != null) {
       this.uuid = uuid;
     }
-    this.versionString = versionString;
-    this.undefinedData = undefinedData == null ? [] : undefinedData;
+    this.undefinedData = undefinedData ?? [];
   }
 
   String get uuid {
@@ -76,7 +72,7 @@ class DeviceInformationRecord extends WellKnownRecord {
   }
 
   set uuid(String uuid) {
-    uuidData = new Uint8List.fromList(Uuid.parse(uuid));
+    uuidData = Uint8List.fromList(Uuid.parse(uuid));
   }
 
   void _addEncodedData(String? value, int type, List<int?> payload) {
@@ -88,6 +84,7 @@ class DeviceInformationRecord extends WellKnownRecord {
     }
   }
 
+  @override
   Uint8List? get payload {
     if (!(vendorName != null && modelName != null)) {
       throw ArgumentError(
@@ -111,11 +108,12 @@ class DeviceInformationRecord extends WellKnownRecord {
       payload.add(valueBytes.length);
       payload.addAll(valueBytes);
     }
-    return new Uint8List.fromList(payload);
+    return Uint8List.fromList(payload);
   }
 
+  @override
   set payload(Uint8List? payload) {
-    ByteStream stream = new ByteStream(payload!);
+    ByteStream stream = ByteStream(payload!);
     while (!stream.isEnd()) {
       int type = stream.readByte();
       int length = stream.readByte();

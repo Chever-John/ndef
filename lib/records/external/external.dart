@@ -1,15 +1,17 @@
 import 'dart:typed_data';
 
-import '../ndef.dart';
+import 'package:ndef/record.dart';
+import 'package:ndef/utilities.dart';
 
-class WellKnownRecord extends NDEFRecord {
-  static const TypeNameFormat classTnf = TypeNameFormat.nfcWellKnown;
+class ExternalRecord extends NDEFRecord {
+  static const TypeNameFormat classTnf = TypeNameFormat.nfcExternal;
 
+  @override
   TypeNameFormat get tnf {
     return classTnf;
   }
 
-  WellKnownRecord({String? decodedType, Uint8List? payload, Uint8List? id})
+  ExternalRecord({String? decodedType, Uint8List? payload, Uint8List? id})
       : super(id: id, payload: payload) {
     if (decodedType != null) {
       this.decodedType = decodedType;
@@ -18,7 +20,7 @@ class WellKnownRecord extends NDEFRecord {
 
   @override
   String toString() {
-    var str = "WellKnownRecord: ";
+    var str = "ExternalRecord: ";
     str += basicInfoString;
     str += "type=$decodedType ";
     str += "payload=${(payload?.toHexString()) ?? '(null)'}";
