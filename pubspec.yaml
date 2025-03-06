@@ -1,6 +1,6 @@
 name: ndef
 description: A Dart library to decode & encode NDEF records, supporting multiple types.
-version: 0.3.3
+version: 0.3.4
 homepage: https://github.com/nfcim/ndef
 
 environment:
@@ -10,5 +10,5 @@ dependencies:
   uuid: ^4.1.0
 
 dev_dependencies:
-  lints: ^3.0.0
+  lints: ^5.0.0
   test: ^1.24.3
